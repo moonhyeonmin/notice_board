@@ -20,9 +20,19 @@ app.engine("handlebars", handlebars.engine()); // 1 템플릿 엔진으로 핸�
 app.set("view engine", "handlebars"); // 2 웹페이지 로드 시 사용할 템플릿 엔진 설정
 app.set("views", __dirname + "/views"); // 3 뷰 디렉토리를 views로 설정
 
-app.get("/", (req, res) => {
-  // 1. 시작 페이지 구현
-  res.render("home", { title: "테스트 게시판", message: "만나서 반갑습니다!" });
+// 리스트 페이지
+app.get("/", async (req, res) => {
+  const page = parseInt(req.query.page) || 1; // 현재 페이지 데이터
+  const search = req.query.search || ""; // 검색어 데이터
+  try {
+    const [posts, paginator] = await postService.list(collection, page, search); // postService.list에서 글 목록과 페이지네이터를 가져옴
+
+    res.render("home", { title: "테스트 게시판", search, paginator, posts }); // 리스트 페이지 렌더링
+  } catch (error) {
+    console.error(error);
+
+    res.render("home", { title: "테스트 게시판" }); // 에러가 나는 경우 빈 값으로 렌더링
+  }
 });
 
 app.get("/write", (req, res) => {
