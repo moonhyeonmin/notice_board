@@ -1,0 +1,46 @@
+<h1>{{title}}</h1>
+
+<input
+  type="text"
+  name="search"
+  id="search"
+  value="{{search}}"
+  placeholder="검색어를 입력하세요."
+/>
+<button
+  onclick="location.href=`/?search=${document.getElementById('search').value}`"
+>검색</button>
+<br />
+
+<div>
+  <table>
+    <thead>
+      <tr>
+        <th width="50%">제목</th>
+        <th>작성자</th>
+        <th>조회수</th>
+        <th>등록일</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a href="/detail/">타이틀</a></td>
+        <td align="center">작성자 이름</td>
+        <td align="center">99999</td>
+        <td align="center">2024.07.17</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!--페이징 영역 -->
+<div>
+  <a>&lt;&lt;</a>
+  <a>&lt;</a>
+  <a>1</a>
+  <a>2</a>
+  <a>3</a>
+  <a>4</a>
+  <a>&gt;</a>
+  <a>&gt;&gt;</a>
+</div>
