@@ -47,8 +47,11 @@ app.post("/write", async (req, res) => {
 });
 
 app.get("/detail/:id", async (req, res) => {
+  // 상세페이지로 이동
+  const result = await postService.getDetailPost(collection, req.params.id);
   res.render("detail", {
     title: "테스트 게시판",
+    post: result.value,
   });
 });
 
