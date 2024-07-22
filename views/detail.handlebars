@@ -1,65 +1,78 @@
 <h1>{{title}}</h1>
-{{#with post}} <!-- post 객체를 쉽게 사용하도록 with로 감싸기 -->
-<h2 class="text-xl">제목입니다.</h2>
-<div>
-  작성자 :<b>{{writer}}</b> <!-- 작성자 -->
-</div>
-<div>
-  조회수 : {{hits}} | 작성일시 : {{dateString createdDt}} <!--  조회수 및 작성일 -->
-  <button onclick="modifyPost()">수정</button>
-  <!-- 게시글 관련 버튼 영역 -->
-  <button onclick="deletePost()">삭제</button>
-</div>
-
-<div>
-  <pre>{{content}}</pre>
-  <!-- 본문 표시 영역 -->
-</div>
-
-<section>
+{{#with post}}
+  <!-- post 객체를 쉽게 사용하도록 with로 감싸기 -->
+  <h2 class="text-xl">{{title}}</h2>
   <div>
-    <h3>3개의 댓글이 있습니다.</h3>
-    <!-- 댓글 개수 표시 -->
+    작성자 :<b>{{writer}}</b>
+    <!-- 작성자 -->
+  </div>
+  <div>
+    조회수 :
+    {{hits}}
+    | 작성일시 :
+    {{dateString createdDt}}
+    <!--  조회수 및 작성일 -->
+    <button onclick="modifyPost()">수정</button>
+    <!-- 게시글 관련 버튼 영역 -->
+    <button onclick="deletePost()">삭제</button>
   </div>
 
-  <form method="post" action="/write-comment">
-    <!-- 댓글 작성 폼 -->
+  <div>
+    <pre>{{content}}</pre>
+    <!-- 본문 표시 영역 -->
+  </div>
+
+  <section>
     <div>
+      <h3>{{lengthOfList comments}}개의 댓글이 있습니다.</h3>
+      <!-- 댓글 개수 표시 -->
+    </div>
+
+    <form method="post" action="/write-comment">
+      <!-- 댓글 작성 시 API 호출 정보 -->
+      <input type="hidden" name="id" value="{{_id}}" />
+      <!-- 게시글의 _id -->
       <div>
-        <input type="text" name="name" placeholder="이름" />
-        <input type="password" name="password" placeholder="비밀번호" />
+        <div>
+          <input type="text" name="name" placeholder="이름" />
+          <!-- 작성자 -->
+          <input type="password" name="password" placeholder="비밀번호" />
+          <!-- 비밀번호 입력란 -->
+        </div>
+        <div>
+          <textarea
+            cols="40"
+            rows="3"
+            name="comment"
+            placeholder="댓글을 입력해주세요"
+          ></textarea>
+          <br /><br /><button>댓글 쓰기</button>
+          <!-- 댓글 전송 버튼 -->
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <section>
+    <!-- 댓글 표시 영역 -->
+    {{#each comments}}
+      <div>
+        <div>
+          작성자 :
+          <b>댓글 작성자</b>
+        </div>
+        <div>
+          작성일시 : 2024-07-17 11:26:23
+          <button onclick="deleteComment('1')">삭제</button>
+          <!-- 삭제 버튼 -->
+        </div>
       </div>
       <div>
-        <textarea
-          cols="40"
-          rows="3"
-          name="comment"
-          placeholder="댓글을 입력해주세요"
-        ></textarea>
-        <br /><br /><button>댓글 쓰기</button>
-        <!-- 댓글 전송 버튼 -->
+        <pre>{{comment}}</pre>
       </div>
-    </div>
-  </form>
-</section>
-
-<!-- 댓글 표시 영역 -->
-<section>
-  <div>
-    <div>
-      작성자 :
-      <b>댓글 작성자</b>
-    </div>
-    <div>
-      작성일시 : 2024-07-17 11:26:23
-      <button onclick="deleteComment('1')">삭제</button>
-    </div>
-  </div>
-  <div>
-    <pre>{{comment}}</pre>
-  </div>
-</section>
-{{/wit}}
+    {{/each}}
+  </section>
+{{/with}}
 <footer>
   <div>
     <a href="/">목록으로</a>
@@ -67,6 +80,21 @@
   </div>
 </footer>
 <script>
-  async function modifyPost() {  }
-  async function deletePost() {  }
+  const postOption = { method: 'POST', headers: { 'Content-Type':
+  'application/json', }, } async function modifyPost() { const password =
+  prompt("패스워드를 입력해주세요"); if (!password) { // 프롬프트에서 취소를
+  누른 경우 처리 return; } const result = await fetch("/check-password", { //
+  check-password API 실행 ...postOption, body: JSON.stringify({id: "{{post._id}}",
+  password}) }); const data = await result.json(); // json 함수를 실행하는
+  경우도 await을 해줘야 함 if (data.isExist) { // 패스워드가 맞는 경우 수정
+  페이지로 이동 document.location = "/modify/{{post._id}}" } else {
+  alert("패스워드가 올바르지 않습니다."); } } const deleteOption = { method:
+  'DELETE', headers: { 'Content-Type' : 'application/json', }, } async function
+  deletePost() { const password = prompt("삭제하려면 패스워드를 입력해주세요");
+  // 프롬프트로 값 입력받기 if (!password) { // 프롬프트에서 취소를 누른 경우
+  처리 return; } const result = await fetch("/delete", { // fetch API를 사용해
+  delete API 호출 ...deleteOption, body: JSON.stringify({ id: "{{post._id}}",
+  password }) }); const data = await result.json(); // delete API의 결과에 따라
+  다른 메시지 출력 if (!data.isSuccess) { alert("삭제에 실패했습니다. 패스워드를
+  확인해주세요."); return; } document.location = "/"; }
 </script>
