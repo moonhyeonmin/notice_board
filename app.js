@@ -17,7 +17,6 @@ app.engine(
   }).engine
 );
 
-app.engine("handlebars", handlebars.engine()); // 1 템플릿 엔진으로 핸들바 등록
 app.set("view engine", "handlebars"); // 2 웹페이지 로드 시 사용할 템플릿 엔진 설정
 app.set("views", __dirname + "/views"); // 3 뷰 디렉토리를 views로 설정
 
@@ -49,7 +48,7 @@ app.get("/modify/:id", async (req, res) => {
   res.render("write", { title: "테스트 게시판 ", mode: "modify", post });
 });
 
-app.post("/modify/", async (req, res) => {
+app.post("/modify", async (req, res) => {
   const { id, title, writer, password, content } = req.body;
 
   const post = {
@@ -69,7 +68,7 @@ app.delete("/delete", async (req, res) => {
   const { id, password } = req.body;
   try {
     const result = await collection.deleteOne({
-      _id: ObjectId(id),
+      _id: new ObjectId(id),
       password: password,
     }); // collection의 deleteOne을 사용해 게시글 하나를 삭제
 
@@ -114,6 +113,27 @@ app.post("/write-comment", async (req, res) => {
   }
   postService.updatePost(collection, id, post); // 업데이트하기. 업데이트 후에는 상세페이지도 다시 리다이렉트
   return res.redirect(`/detail/${id}`);
+});
+
+app.delete("/delete-comment", async (req, res) => {
+  const { id, idx, password } = req.body;
+
+  // 게시글(post)의 Comments 안에 있는 특정 댓글 데이터를 찾기
+  const post = await collection.findOne(
+    {
+      _id: new ObjectId(id),
+      comments: { $elemNatch: { idx: parseInt(idx), password } },
+    },
+    postService.projectionOption,
+  );
+
+  if (!post) { // 데이터가 없으면 isSuccess: false 주면서 종료
+    return res.json({ isSuccess: false});
+  }
+
+  post.comments = post.comments.filter((comment) => comment.idx != idx); // 댓글 번호가 idx 이외인 것만 comments에 다시 할당 후 저장
+  postService.updatePost(collection, id, post);
+  return res.json({ isSuccess: true});
 });
 
 app.post("/write", async (req, res) => {

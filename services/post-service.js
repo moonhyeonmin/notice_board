@@ -14,14 +14,14 @@ async function list(collection, page, search) {
   const perPage = 10;
   const query = { title: new RegExp(search, "i") }; // title이 search와 부분일치하는지 확인
   const cursor = collection
-    .find(query, { limit: perPage, ski: (page - 1) * perPage })
+    .find(query, { limit: perPage, skip: (page - 1) * perPage })
     .sort({
       // limit은 10개만 가져온다는 의미, skip은 설정된 개수만큼 건너뛴다(skip)
       createdDt: -1, // 생성일 역순으로 정리
     });
   const totalCount = await collection.count(query);
   const posts = await cursor.toArray(); // 커서로 받아온 데이터를 리스트로 변경
-  const paginatorObj = paginator({ totalCount, page, perPage: perPage }); // 페이지네이터 생성
+  const paginatorObj = paginator({ totalCount, page, perPage }); // 페이지네이터 생성
   return [posts, paginatorObj];
 }
 
@@ -37,20 +37,24 @@ const projectionOption = {
 async function getDetailPost(collection, id) {
   // 몽고디비 Collection의 findOneAndUpdate()함수 사용
   // 게시글을 읽을 때마다 hits를 1씩 증가
-  return await collection.findOneAndUpdate(
+  const result = await collection.findOneAndUpdate(
     { _id: new ObjectId(id) },
     { $inc: { hits: 1 } },
     projectionOption
   );
+  return result;
 }
 
 async function getPostByIdAndPassword(collection, { id, password }) {
   // findOne() 함수 사용
-  return await collection.findOne({ _id: ObjectId(id) }, projectionOption);
+  return await collection.findOne({
+    _id: new ObjectId(id),
+    password: password,
+  });
 }
 
 async function getPostById(collection, id) {
-  return await collection.findOne({ _id: ObjectId(id) }, projectionOption);
+  return await collection.findOne({ _id: new ObjectId(id) }, projectionOption);
 }
 
 async function updatePost(collection, id, post) {
@@ -59,7 +63,26 @@ async function updatePost(collection, id, post) {
       ...post,
     },
   };
-  return await collection.updateOne({ _id: ObjectId(id) }, toUpdatePost);
+  return await collection.updateOne({ _id: new ObjectId(id) }, toUpdatePost);
+}
+
+async function deletePost(collection, id, password) {
+  const result = await collection.deleteOne({
+    _id: new ObjectId(id),
+    password: password,
+  });
+  console.log(result);
+  return result.deletedCount === 1;
+}
+
+async function getComments(collection, id, idx, password) {
+  return await collection.findOne(
+    {
+      _id: new ObjectId(id),
+      comments: { $elemMatch: { idx: parseInt(idx), password } },
+    },
+    projectionOption
+  );
 }
 
 module.exports = {
@@ -69,4 +92,6 @@ module.exports = {
   getPostById,
   getPostByIdAndPassword,
   updatePost,
+  deletePost,
+  getComments,
 };

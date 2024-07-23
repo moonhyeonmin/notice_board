@@ -1,9 +1,10 @@
 <h1>[{{title}}] 글 {{#if (eq mode "create")}}작성{{else}}수정{{/if}}</h1> <!-- mode에 따라 문구 변경 -->
 
 <div>
-  <form name="boardForm" method="post" {{#if (eq mode "create" )}}action="/write" {{else}}action="/modify" {{/if}}>
+  <form {{#if (eq mode "create")}}action="/write"{{else}}action="/modify"{{/if}} name="boardForm" method="post">
+    {{#if (eq mode "modify")}}
   <!-- 수정 모드일 때는 id값을 폼을 통해 전송 -->
-  <input type="hidden" name="id" value="{{post._id}}" />
+  <input type="hidden" name="id" value="{{post._id}}">
   {{/if}}
 
     <!-- 수정 모드인 경우 제목을 넣어줌-->
